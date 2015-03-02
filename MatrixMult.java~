@@ -13,7 +13,7 @@ public class MatrixMult{
 **                                                      **
 *********************************************************/
 
-        boolean sleep=false;
+        boolean sleep=true;
         int my_rank; // Rank of process int source;  // Rank of sender
         int dest;    // Rank of receiver 
         int tag=50;  // Tag for messages  
@@ -30,8 +30,8 @@ public class MatrixMult{
 
         if (myrank == 0) {
             // Set the token's values if you are process 0
-            partitionedX = readFile("a1.txt");
-            partitionedY = readFile("b1.txt");
+            partitionedX = readFile("i1.txt");
+            partitionedY = readFile("j1.txt");
             fillToken(token, partitionedX, partitionedY);
 
             System.out.println(myrank+"=======\tA and B");
@@ -138,7 +138,7 @@ public class MatrixMult{
                             int[][][] G = new int[][][]{g};
                             System.out.println("=======\t"+myrank+" about to send:");
                             printMatrix(G[0]);
-                            MPI.COMM_WORLD.Send(G, 0, 1, MPI.OBJECT, 0, 100);
+                            MPI.COMM_WORLD.Send(G, 0, 1, MPI.OBJECT, 0, tag);
                         } else if(myrank==0) {
                             if(sleep){Thread.sleep(p/2*1000);}
                             int[][] FP = new int[g.length*2][g.length*2]; //FP is a different beatboxing sound than SK
@@ -146,16 +146,16 @@ public class MatrixMult{
                             int[][][] H = new int[1][msg_size][msg_size];
                             int[][][] K = new int[1][msg_size][msg_size];
                             concat(FP, g, 0,0); 
-                            MPI.COMM_WORLD.Recv(G, 0, 1, MPI.OBJECT, 8, 100);
+                            MPI.COMM_WORLD.Recv(G, 0, 1, MPI.OBJECT, myrank+(1*8), tag);
                             if(sleep){Thread.sleep(1000);}
                             System.out.println("========\t"+myrank+" about to recieve from 8:");
                             printMatrix(G[0]);
                             concat(FP, G[0], 0, FP.length/2);
-                            MPI.COMM_WORLD.Recv(H, 0, 1, MPI.OBJECT, 16, 100);
+                            MPI.COMM_WORLD.Recv(H, 0, 1, MPI.OBJECT, myrank+(2*8), tag);
                             if(sleep){Thread.sleep(1000);}
                             System.out.println("========\t"+myrank+" about to recieve from 16:");
                             printMatrix(H[0]); concat(FP, H[0], FP.length/2, 0);
-                            MPI.COMM_WORLD.Recv(K, 0, 1, MPI.OBJECT, 24, 100);
+                            MPI.COMM_WORLD.Recv(K, 0, 1, MPI.OBJECT, myrank+(3*8), tag);
                             if(sleep){Thread.sleep(1000);}
                             System.out.println("========\t"+myrank+" about to recieve from 24:");
                             printMatrix(K[0]);
