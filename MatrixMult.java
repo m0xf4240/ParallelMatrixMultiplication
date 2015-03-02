@@ -21,11 +21,14 @@ public class MatrixMult{
 	    int[][][] partitionedX=null;
 	    int[][][] partitionedY=null;
 
+        //level = 8th root of p
+        int level = 0;
         if (myrank == 0) {
             // Set the token's values if you are process 0
             partitionedX = readFile("a1.txt");
             partitionedY = readFile("b1.txt");
             fillToken(token, partitionedX, partitionedY);
+            //parallelSolve(level, token[0], token[1], myrank, workers);
 
             System.out.println(myrank+"=======\tA and B");
             printMatrix(token[0]);
@@ -40,7 +43,7 @@ public class MatrixMult{
                 }
             }
         } else if (myrank%workers == 0){
-            
+             
             MPI.COMM_WORLD.Recv(token, 0, msg_size, MPI.OBJECT, 0, tag);
 
             fillToken(subtoken, partition(token[0]), partition(token[1]) ); 
@@ -65,8 +68,7 @@ public class MatrixMult{
             int[][][] savedToken=token;
             token=subtoken;
         }
-        int[][]a = token[0];
-        int[][]b = token[1];
+        int[][]a = token[0]; int[][]b = token[1];
         if(sleep){Thread.sleep(p*1000);}
         int[][]d = mult(a,b);
         System.out.println(myrank+"=======\tAfter Mult (1)");
@@ -256,6 +258,56 @@ public class MatrixMult{
             token[13]=partitionedY[2];
             token[14]=partitionedX[3];
             token[15]=partitionedY[3];
+    }
+
+    public static void parallelSolve(int level, int[][]A, int[][]B, int myrank, int workers){ //recurrsive
+        //Should be overwritten everywhere
+        int[][][]    token = new int[workers*2][1][1]; //each worker gets 2 matrixes
+        int[][][] subtoken = new int[workers*2][1][1]; //each worker gets 2 matrixes
+        if (myrank==0){
+            fillToken(token, partitionedX, partitionedY);
+
+            if(debug){
+                System.out.println(myrank+"=======\tA and B");
+                printMatrix(A);
+                printMatrix(B);
+            }
+
+            for (int i=1; i<workers; i++){
+                MPI.COMM_WORLD.Send(token, i*2, 2, MPI.OBJECT, (myrank + Math.pow(8,level)*i) , tag);
+                if (level>1){
+                    parallelSolve(--level,A,B,myrank,workers); 
+                }
+            }
+        } else if (myrank % Math.pow(workers,level-1) == 0){
+             
+
+            
+            MPI.COMM_WORLD.Recv(token, 0, msg_size, MPI.OBJECT, 0, tag);
+
+            fillToken(subtoken, partition(token[0]), partition(token[1]) ); 
+            if (debug){  
+                System.out.println(myrank+"=======\tA1 and B1");
+                printMatrix(subtoken[0]);
+                printMatrix(subtoken[1]);
+            }
+            
+            for (int i=1; i<workers; i++){
+                MPI.COMM_WORLD.Send(token, i*2, 2, MPI.OBJECT, (myrank + Math.pow(8,level)*i) , tag);
+                if (level>2){
+                    parallelSolve(--level,A,B,myrank,workers); 
+                }
+            }
+
+        } else {
+            MPI.COMM_WORLD.Recv(token, 0, msg_size, MPI.OBJECT, myrank-(myrank%8), tag);
+            if(sleep){Thread.sleep(1000*myrank);}
+            if(debug){
+                System.out.println(myrank+"=======\tA11 and B11");
+                printMatrix(token[0]);
+                printMatrix(token[1]);
+            }
+        }
     }
 
     public static int[][] mult(int[][] A, int[][] B) {
