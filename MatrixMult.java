@@ -30,8 +30,9 @@ public class MatrixMult{
 
         if (myrank == 0) {
             // Set the token's values if you are process 0
-            partitionedX = readFile("a1.txt");
-            partitionedY = readFile("b1.txt");
+            String dir = "/home/cvalentine/cluster-scratch/mpi_inputs/";
+            partitionedX = readFile(dir+"a3.txt");
+            partitionedY = readFile(dir+"b3.txt");
             fillToken(token, partitionedX, partitionedY);
 
             System.out.println(myrank+"=======\tA and B");
