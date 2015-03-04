@@ -432,13 +432,14 @@ public class MatrixMult{
 	public static void addFiles(String[] filesA, String[] filesB, String[] filesO) throws IOException{
 		//lists passed in in l-r,t-b order
 		// so we add [0] to [0] etc
-		for (int i=0; i<filesA.length;i++) {
+		for (int i=0; i<filesA.length; i++) {
 		BufferedWriter f = new BufferedWriter(new FileWriter(filesO[i]));	//add line by line and write to a new file
 			int[] getSize = readFileRow(filesA[0],0);			//TODO: wrap these into a list (also for following methods)
 			int size = getSize.length; //assuming square matricies
+            System.out.println(size);
 			for (int j=0; j<size; j++) { //read all rows
-				int[] nextRowA = readFileRow(filesA[j],j);
-				int[] nextRowB = readFileRow(filesB[j],j);
+				int[] nextRowA = readFileRow(filesA[i],j);
+				int[] nextRowB = readFileRow(filesB[i],j);
 				f.write(addRows(nextRowA,nextRowB));
 				f.newLine();
 			}
@@ -488,14 +489,23 @@ public class MatrixMult{
 	public static void writeMult(String fileA, String fileB, String fileO) throws IOException{
 		BufferedWriter f = new BufferedWriter(new FileWriter(fileO));
 		int[] s = readFileRow(fileA,0);
-		String nextLine = "";
 		for (int i=0; i<s.length; i++) {
+		    String nextLine = "";
 			int[] r = readFileRow(fileA,i);
+            for (int a=0; a<r.length; a++){
+                System.out.print(r[a]+",");
+            }
+            System.out.print(" x ");
 			for (int j=0; j<s.length; j++) {
 				int[] c = readFileCol(fileB,j);
+                for (int b=0; b<c.length; b++){
+                    System.out.print(c[b]+",");
+                }
+                System.out.println();
 				int m = mult(r,c);
 				nextLine = nextLine + m + " ";
 			}
+            System.out.println(" = " + nextLine);
 			f.write(nextLine);
 			f.newLine();
 		}

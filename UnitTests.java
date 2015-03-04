@@ -3,12 +3,11 @@ import java.io.*;
 
 public class UnitTests{
     public static void main(String[] args) throws IOException{
-        for (int j=0; j<8; j++){
-            int[] file = MatrixMult.readFileCol("j1.txt",j);
-            for (int i=0; i<file.length; i++){
-                System.out.print(file[i]+",");
-            }
-            System.out.println();
-        }
+            //int[][] file1 = MatrixMult.readFile("i1.txt",j);
+            //int[][] file2 = MatrixMult.readFile("j1.txt",j);
+
+            MatrixMult.writeMult("i1.txt", "j1.txt", "k1.txt");
+            int[][] fileK = MatrixMult.readFile("k1.txt", 0, 0, 0, 8);
+            MatrixMult.printMatrix(fileK);
     }
 }
