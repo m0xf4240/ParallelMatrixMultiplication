@@ -13,7 +13,7 @@ public class MatrixMult{
 **                                                      **
 *********************************************************/
 
-        boolean sleep=true;
+        boolean sleep=false;
         int my_rank; // Rank of process int source;  // Rank of sender
         int dest;    // Rank of receiver 
         int tag=50;  // Tag for messages  
@@ -30,8 +30,8 @@ public class MatrixMult{
 
         if (myrank == 0) {
             // Set the token's values if you are process 0
-            partitionedX = readFile("i1.txt");
-            partitionedY = readFile("j1.txt");
+            partitionedX = readFile("a1.txt");
+            partitionedY = readFile("b1.txt");
             fillToken(token, partitionedX, partitionedY);
 
             System.out.println(myrank+"=======\tA and B");
@@ -138,7 +138,7 @@ public class MatrixMult{
                             int[][][] G = new int[][][]{g};
                             System.out.println("=======\t"+myrank+" about to send:");
                             printMatrix(G[0]);
-                            MPI.COMM_WORLD.Send(G, 0, 1, MPI.OBJECT, 0, tag);
+                            MPI.COMM_WORLD.Send(G, 0, 1, MPI.OBJECT, 0, 100);
                         } else if(myrank==0) {
                             if(sleep){Thread.sleep(p/2*1000);}
                             int[][] FP = new int[g.length*2][g.length*2]; //FP is a different beatboxing sound than SK
@@ -146,16 +146,16 @@ public class MatrixMult{
                             int[][][] H = new int[1][msg_size][msg_size];
                             int[][][] K = new int[1][msg_size][msg_size];
                             concat(FP, g, 0,0); 
-                            MPI.COMM_WORLD.Recv(G, 0, 1, MPI.OBJECT, myrank+(1*8), tag);
+                            MPI.COMM_WORLD.Recv(G, 0, 1, MPI.OBJECT, 8, 100);
                             if(sleep){Thread.sleep(1000);}
                             System.out.println("========\t"+myrank+" about to recieve from 8:");
                             printMatrix(G[0]);
                             concat(FP, G[0], 0, FP.length/2);
-                            MPI.COMM_WORLD.Recv(H, 0, 1, MPI.OBJECT, myrank+(2*8), tag);
+                            MPI.COMM_WORLD.Recv(H, 0, 1, MPI.OBJECT, 16, 100);
                             if(sleep){Thread.sleep(1000);}
                             System.out.println("========\t"+myrank+" about to recieve from 16:");
                             printMatrix(H[0]); concat(FP, H[0], FP.length/2, 0);
-                            MPI.COMM_WORLD.Recv(K, 0, 1, MPI.OBJECT, myrank+(3*8), tag);
+                            MPI.COMM_WORLD.Recv(K, 0, 1, MPI.OBJECT, 24, 100);
                             if(sleep){Thread.sleep(1000);}
                             System.out.println("========\t"+myrank+" about to recieve from 24:");
                             printMatrix(K[0]);
@@ -337,4 +337,101 @@ public class MatrixMult{
             }
         }
     }
+
+
+/**
+ * @param	filesA	String[] file names to be added to filesB
+ * @param	filesB	String[] file names to be added to filesA
+ * @param	filesO	String[] file names to be written to
+ * @return	void
+ */
+	public static void addFiles(String[] filesA, String[] filesB, String[] filesO) throws IOException{
+		//lists passed in in l-r,t-b order
+		// so we add [0] to [0] etc
+		for (int i=0; i<filesA.length;i++) {
+		BufferedWriter f = new BufferedWriter(new FileWriter(filesO[i]));	//add line by line and write to a new file
+			int[] getSize = readFileRow(filesA[0],0);			//TODO: wrap these into a list (also for following methods)
+			int size = getSize.length; //assuming square matricies
+			for (int j=0; j<size; j++) { //read all rows
+				int[] nextRowA = readFileRow(filesA[j],j);
+				int[] nextRowB = readFileRow(filesB[j],j);
+				f.write(addRows(nextRowA,nextRowB));
+				f.newLine();
+			}
+			f.close();
+		}
+	}
+
+/**
+ * @param	A	int[] matricies to be added to B
+ * @param	B	int[] matricies to be added to A
+ * @return	output	String of space separated ints to be written to the output file
+ */
+	public static String addRows(int[] A, int[]B) {
+		if (A.length != B.length) {
+			System.out.println("\t \t ERROR: Method addRows() is trying to add A of length "+A.length+" and B of length "+B.length);
+		}
+		String output = "" + (A[0] + B[0]);
+		for (int i=1; i<A.length; i++) { // stops the extra space problem
+			output = output + " " + (A[i] + B[i]);
+		}
+		return output;
+	}
+
+/**
+ * @param	A	int[] matrix row
+ * @param	B	int[] matrix column
+ * @return	int	result or, if failed, -1
+ */
+	public static int mult(int[]A, int[]B) {
+		if (A.length != B.length) {
+			System.out.println("\t \t ERROR: trying to multiply row of length "+A.length+" with col of length "+B.length);
+			return -1;
+		}
+		int result = 0;
+		for (int i=0; i<A.length; i++) {
+			result += (A[i] * B[i]);
+		}
+		return result;
+	}
+
+/**
+ * @param	fileA	file name to be multiplied with B
+ * @param	fileB	file name to be multiplied with A
+ * @param	fileO	name of output file to be written
+ * @return	void
+ */
+	public static void writeMult(String fileA, String fileB, String fileO) throws IOException{
+		BufferedWriter f = new BufferedWriter(new FileWriter(fileO));
+		int[] s = readFileRow(fileA,0);
+		String nextLine = "";
+		for (int i=0; i<s.length; i++) {
+			int[] r = readFileRow(fileA,i);
+			for (int j=0; j<s.length; j++) {
+				int[] c = readFileCol(fileB,j);
+				int m = mult(r,c);
+				nextLine = nextLine + m + " ";
+			}
+			f.write(nextLine);
+			f.newLine();
+		}
+		f.close();
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 } // class
