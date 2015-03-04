@@ -2,6 +2,8 @@ import mpi.*;
 import java.io.*;
 
 public class MatrixMult{
+    public static int tempFileSize = 8; // TODO: move to main, define based on file.txt size and n ways parallel
+
     public static void main(String[] args) throws MPIException,IOException,InterruptedException{
         MPI.Init(args);
 
@@ -183,6 +185,87 @@ public class MatrixMult{
             System.out.print("},");
         }
         System.out.println("}");
+    }
+
+    /**
+    *
+    * Returns a square submatrix of given size beginning at given index from a 
+    * larger matrix within some file.
+    * @param file the String filename where the larger matrix is stored
+    * @param myrank currently unused, the rank of the process calling readFile
+    * @param rowNum topmost row index for the subarray
+    * @param colNum leftmost col index for the subarray
+    * @param squareSize size of the desired subarray
+    *
+    **/
+    public static int[][] readFile(String file, int myrank, int rowNum, int colNum, int squareSize) throws IOException{
+        BufferedReader reader = new BufferedReader(new FileReader(file));
+        int[][] subMatrix = new int[squareSize][squareSize];
+        String line="";
+        int i=0;
+        line=reader.readLine();
+        while (++i < rowNum){
+            line=reader.readLine();
+        }
+        for (int j=0; j<squareSize; j++){
+            int[] subRow = new int[squareSize];
+            if (line==null){
+                throw new IOException("Reading file "+file+" at line "+(j+i)+" failed.");
+            } 
+            String[] row = line.split(" ");
+
+            for (int k=colNum; k<colNum+squareSize; k++){
+                if (k>=row.length){
+                    throw new IOException("Reading file "+file+" at line "+(j+i)+" and col "+k+" failed.");
+                }
+                subRow[k-colNum] = Integer.parseInt(row[k]);
+            }
+            subMatrix[j]=subRow;
+            line=reader.readLine();
+        }
+        return subMatrix;
+    }
+
+    /**
+    * 
+    * Returns a single row of a matrix "file", where "file" may actually be 
+    * broken up into multiple smaller files of the same size.
+    *
+    **/
+    public static int[] readFileRow(String file, int rowNum) throws IOException{
+        int[] row= new int[tempFileSize];
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+
+            String line="";
+            for (int j=0; j<=rowNum; j++){
+                line = reader.readLine();
+            }
+            String[] rowPart = line.split(" ");
+            for (int j=0; j<rowPart.length; j++){
+                row[j]=Integer.parseInt(rowPart[j]);
+            }
+        return row;
+    }
+
+    /**
+    * 
+    * Returns a single col of a matrix "file", where "file" may actually be 
+    * broken up into multiple smaller files of the same size.
+    *
+    **/
+    public static int[] readFileCol(String file, int colNum) throws IOException{
+        int [] col= new int[tempFileSize];//assume temp files are square.
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+
+            String line="";
+            int j=0;
+            line = reader.readLine();
+            while(line!=null){
+                String[] row = line.split(" ");
+                col[j++]=Integer.parseInt(row[colNum]);
+                line = reader.readLine();
+            }
+        return col;
     }
 
     public static int[][][] readFile(String filename){
