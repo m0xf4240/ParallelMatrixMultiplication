@@ -337,4 +337,85 @@ public class MatrixMult{
             }
         }
     }
+
+
+/**
+ * @param	filesA	String[] file names to be added to filesB
+ * @param	filesB	String[] file names to be added to filesA
+ * @param	filesO	String[] file names to be written to
+ * @return	void
+ */
+	public static void addFiles(String[] filesA, String[] filesB, String[] filesO) throws IOException{
+		//lists passed in in l-r,t-b order
+		// so we add [0] to [0] etc
+		for (int i=0; i<filesA.length;i++) {
+		BufferedWriter f = new BufferedWriter(new FileWriter(filesO[i]));	//add line by line and write to a new file
+			int[] getSize = readFileRow(filesA[0],0);			//TODO: wrap these into a list (also for following methods)
+			int size = getSize.length; //assuming square matricies
+			for (int j=0; j<size; j++) { //read all rows
+				int[] nextRowA = readFileRow(filesA[j],j);
+				int[] nextRowB = readFileRow(filesB[j],j);
+				f.write(addRows(nextRowA,nextRowB));
+				f.newLine();
+			}
+			f.close();
+		}
+	}
+
+/**
+ * @param	A	int[] matricies to be added to B
+ * @param	B	int[] matricies to be added to A
+ * @return	output	String of space separated ints to be written to the output file
+ */
+	public static String addRows(int[] A, int[]B) {
+		if (A.length != B.length) {
+			System.out.println("\t \t ERROR: Method addRows() is trying to add A of length "+A.length+" and B of length "+B.length);
+		}
+		String output = "" + (A[0] + B[0]);
+		for (int i=1; i<A.length; i++) { // stops the extra space problem
+			output = output + " " + (A[i] + B[i]);
+		}
+		return output;
+	}
+
+/**
+ * @param	A	int[] matrix row
+ * @param	B	int[] matrix column
+ * @return	int	result or, if failed, -1
+ */
+	public static int mult(int[]A, int[]B) {
+		if (A.length != B.length) {
+			System.out.println("\t \t ERROR: trying to multiply row of length "+A.length+" with col of length "+B.length);
+			return -1;
+		}
+		int result = 0;
+		for (int i=0; i<A.length; i++) {
+			result += (A[i] * B[i]);
+		}
+		return result;
+	}
+
+/**
+ * @param	fileA	file name to be multiplied with B
+ * @param	fileB	file name to be multiplied with A
+ * @param	fileO	name of output file to be written
+ * @return	void
+ */
+	public static void writeMult(String fileA, String fileB, String fileO) throws IOException{
+		BufferedWriter f = new BufferedWriter(new FileWriter(fileO));
+		int[] s = readFileRow(fileA,0);
+		String nextLine = "";
+		for (int i=0; i<s.length; i++) {
+			int[] r = readFileRow(fileA,i);
+			for (int j=0; j<s.length; j++) {
+				int[] c = readFileCol(fileB,j);
+				int m = mult(r,c);
+				nextLine = nextLine + m + " ";
+			}
+			f.write(nextLine);
+			f.newLine();
+		}
+		f.close();
+	}
+
 } // class
