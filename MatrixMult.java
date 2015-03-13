@@ -8,7 +8,6 @@ public class MatrixMult{
     public static void main(String[] args) throws MPIException,IOException,InterruptedException{
         MPI.Init(args);
 
-
         int my_rank; // Rank of process int source;  // Rank of sender
         int dest;    // Rank of receiver 
         tag=50;  // Tag for messages  
@@ -37,135 +36,6 @@ public class MatrixMult{
             printMatrix(token[0]);
         }
 
-//            System.out.println(myrank+"=======\tA and B");
-//            printMatrix(token[0]);
-//            printMatrix(token[1]);
-//            for (int i=1; i<workers; i++){
-//                MPI.COMM_WORLD.Send(token, i*2, 2, MPI.OBJECT, (myrank + ((p==64)?8*i:i)) , tag);
-//                if (p==64){
-//                    fillToken(subtoken, partition(token[0]), partition(token[1]) ); 
-//                    for (int j=1; j<workers; j++){
-//                        MPI.COMM_WORLD.Send(subtoken, j*2, 2, MPI.OBJECT, (myrank + j) , tag);
-//                    }
-//                }
-//            }
-//        } else if (myrank%workers == 0){
-//             
-//            MPI.COMM_WORLD.Recv(token, 0, msg_size, MPI.OBJECT, 0, tag);
-//
-//            fillToken(subtoken, partition(token[0]), partition(token[1]) ); 
-//            
-//            System.out.println(myrank+"=======\tA1 and B1");
-//            printMatrix(subtoken[0]);
-//            printMatrix(subtoken[1]);
-//            
-//            for (int i=1; i<workers; i++){
-//                MPI.COMM_WORLD.Send(subtoken, i*2, 2, MPI.OBJECT, (myrank + i) , tag);
-//            }
-//
-//        } else {
-//            MPI.COMM_WORLD.Recv(token, 0, msg_size, MPI.OBJECT, myrank-(myrank%8), tag);
-//            if(sleep){Thread.sleep(1000*myrank);}
-//            System.out.println(myrank+"=======\tA11 and B11");
-//            printMatrix(token[0]);
-//            printMatrix(token[1]);
-//        }
-//        //TODO: Delete
-//        if(p==64 && myrank%workers==0){ 
-//            int[][][] savedToken=token;
-//            token=subtoken;
-//        }
-//        int[][]a = token[0]; int[][]b = token[1];
-//        if(sleep){Thread.sleep(p*1000);}
-//        int[][]d = mult(a,b);
-//        System.out.println(myrank+"=======\tAfter Mult (1)");
-//        printMatrix(d);
-//
-//        if (myrank%workers>=(workers/2)){ //adding
-//            int[][][]D = new int[][][]{d};
-//            MPI.COMM_WORLD.Send(D, 0, 1, MPI.OBJECT, myrank-(workers/2) , tag);
-//        } else {
-//            int[][][]E=new int[1][1][1]; //not sure why [0][0][0]|null doesnt work
-//            MPI.COMM_WORLD.Recv(E, 0, msg_size, MPI.OBJECT, myrank+(workers/2), tag);
-//            int[][]e=E[0];
-//            System.out.println("=========\tAbout to add(1) for "+myrank +" from "+(myrank+(workers/2)));
-//            int[][] c = add(d,e); 
-//            if(sleep){Thread.sleep(p*1000);}
-//            System.out.println(myrank+"=======\tAfter add (1)");
-//            printMatrix(c);
-//
-//            if (myrank%workers!=0) {
-//                int[][][] C = new int[][][]{c};
-//                MPI.COMM_WORLD.Send(C, 0, 1, MPI.OBJECT, myrank-(myrank%8), tag);
-//            } else {
-//                int[][] SK = new int[c.length*2][c.length*2]; //SK is all the sounds C can make, bc we already use C
-//                int[][][] C = new int[1][1][1];
-//                concat(SK, c, 0,0); 
-//                MPI.COMM_WORLD.Recv(C, 0, msg_size, MPI.OBJECT, myrank+1, tag);
-//                concat(SK, C[0], 0, SK.length/2);
-//                MPI.COMM_WORLD.Recv(C, 0, msg_size, MPI.OBJECT, myrank+2, tag);
-//                concat(SK, C[0], SK.length/2, 0);
-//                MPI.COMM_WORLD.Recv(C, 0, msg_size, MPI.OBJECT, myrank+3, tag);
-//                concat(SK, C[0], SK.length/2, SK.length/2);
-//                System.out.println(myrank+"=======\tAfter Concat (1)");
-//                printMatrix(SK);
-//                if (myrank!=0){ //TODO:WTF is this???
-//                    MPI.COMM_WORLD.Send(new int[][][]{SK}, 0, 1, MPI.OBJECT, 0, tag);
-//                }
-//                
-//
-//                if (p!=8){ 
-//                                
-//                    if (myrank>=p/2) {
-//                        int[][][]SSKK = new int[][][]{SK}; //bc fuck
-//                        MPI.COMM_WORLD.Send(SSKK, 0, 1, MPI.OBJECT, myrank-32, tag);
-//                    } else {
-//    
-//                        int[][][]F=new int[1][1][1]; //not sure why [0][0][0]|null doesnt work
-//                        MPI.COMM_WORLD.Recv(F, 0, msg_size, MPI.OBJECT, myrank+32, tag);
-//                        int[][]f=F[0];
-//                        System.out.println("=========\tAbout to add(2) for "+myrank +" from "+(myrank+32));
-//                        int[][]g = add(SK,f); 
-//                        if(sleep){Thread.sleep(p*1000);}
-//                        System.out.println(myrank+"=======\tAfter add(2)");
-//                        printMatrix(g);
-//                        
-//                        
-//                        if (myrank==16) {
-//                            int[][][] G = new int[][][]{g};
-//                            System.out.println("=======\t"+myrank+" about to send:");
-//                            printMatrix(G[0]);
-//                            MPI.COMM_WORLD.Send(G, 0, 1, MPI.OBJECT, 0, tag);
-//                        } else if(myrank==0) {
-//                            if(sleep){Thread.sleep(p/2*1000);}
-//                            int[][] FP = new int[g.length*2][g.length*2]; //FP is a different beatboxing sound than SK
-//                            int[][][] G = new int[1][1][1];
-//                            int[][][] H = new int[1][1][1];
-//                            int[][][] K = new int[1][1][1];
-//                            concat(FP, g, 0,0); 
-//                            MPI.COMM_WORLD.Recv(G, 0, 1, MPI.OBJECT, myrank+(2*8), tag);
-//                            if(sleep){Thread.sleep(1000);}
-//                            System.out.println("========\t"+myrank+" about to recieve from 8:");
-//                            printMatrix(G[0]);
-//                            concat(FP, G[0], 0, FP.length/2);
-//    //                        MPI.COMM_WORLD.Recv(H, 0, msg_size, MPI.OBJECT, myrank+(1*8), tag);
-//    //                        if(sleep){Thread.sleep(1000);}
-//    //                        System.out.println("========\t"+myrank+" about to recieve from 16:");
-//    //                        printMatrix(H[0]);
-//    //                        concat(FP, H[0], FP.length/2, 0);
-//    //                        MPI.COMM_WORLD.Recv(K, 0, 8, MPI.OBJECT, myrank+(1*8), tag);
-//    //                        if(sleep){Thread.sleep(1000);}
-//    //                        System.out.println("========\t"+myrank+" about to recieve from 24:");
-//    //                        printMatrix(K[0]);
-//    //                        concat(FP, K[0], FP.length/2, FP.length/2);
-//                            System.out.println(myrank+"=======\tAfter concat(2)");
-//                            printMatrix(FP);
-//                        }
-//                    }
-//                }
-//            }
-//        }
-
         MPI.Finalize();
     } // main
 
@@ -182,6 +52,7 @@ public class MatrixMult{
         System.out.println("}");
     }
 
+    //TODO:replace this with tempfile system
     public static int[][][] readFile(String filename){
             int[][][]x=null;
             try {
@@ -223,6 +94,7 @@ public class MatrixMult{
             return x;
     }
     
+    //TODO:replace this with tempfile system
     public static int[][][] partition(int[][] A){
         int[][] x1 = new int[A.length/2][A.length/2];
         int[][] x2 = new int[A.length/2][A.length/2];
@@ -248,6 +120,7 @@ public class MatrixMult{
         return x;
     }
 
+    //TODO:replace this with tempfile system
     public static void fillToken(int[][][] token, int[][][] partitionedX, int[][][] partitionedY){
             token[0] =partitionedX[0];
             token[1] =partitionedY[0];
@@ -267,7 +140,82 @@ public class MatrixMult{
             token[15]=partitionedY[3];
     }
 
-    public static int[][] parallelSolve(int level, int[][][]A, int[][][]B, int myrank, int workers, int p, int msg_size) throws MPIException,IOException,InterruptedException{ //recurrsive
+    public static String[] distributeSubProblems(int level, int[][][]A, int[][][]B, int myrank, int workers, int p, int msg_size) throws MPIException,IOException,InterruptedException{ 
+
+        if (myrank==0){
+            myFileList = getAllFiles(p);
+            for (int i=1; i<workers; i++){
+                int dest = (int) ((myrank + Math.pow(8,level-1)*i)) ;
+                String[] subFileList = partitionFileList (myFileList, dest, myrank);
+                send(subFileList, i*2, 2, myrank, dest, tag, level);
+                if (level>1){
+                    parallelSolve(--level,A,B,myrank,workers,p,msg_size); 
+                }
+            }
+        } else if (myrank % Math.pow(workers,level-1) == 0 && myrank>7){ //This shouldnt execute for 8 ways parallel
+            recv(myFileList, 0, msg_size, getSender(myrank), myrank, tag, level);
+
+            for (int i=1; i<workers; i++){
+                int dest = (int) ((myrank + Math.pow(8,level-1)*i)) ;
+                String[] subFileList = partitionFileList (myFileList, dest, myrank);
+                send(subFileList, i*2, 2, myrank, dest, tag, level);
+                if (level>2){
+                    parallelSolve(--level,A,B,myrank,workers,p,msg_size); 
+                }
+            }
+        } else {
+            int src = myrank-(myrank%8);
+            recv(myFileList, 0, msg_size, src, myrank, tag, level);
+            if(sleep){Thread.sleep(1000*myrank);}
+        }
+
+        return myFileList;
+    }
+
+
+    /**
+     * Specify the data to call MPI.Send() The datatype param for MPI.Send() is
+     * assumed to be MPI.Object
+     *
+     * @param buf send buffer array
+     * @param offset initial offet in send buffer
+     * @param count number of items to send
+     * @param src rank of source (debugging)
+     * @param dest rank of destination
+     * @param tag message tag
+     * @param level level of recurssion calling send() (debugging)
+     * @return void
+     */
+    public static void send(int[][][] buf, int offset, int count, int src, int dest, int tag, int level){
+        if(debug){ 
+            System.out.println("Level is "+level); } 
+            System.out.println("Sending to "+dest);
+        }
+        MPI.COMM_WORLD.Send(buf, offset, count, MPI.OBJECT, dest, tag);
+    }
+
+    /**
+     * Specify the data to call MPI.Recv() The datatype param for MPI.Recv() is
+     * assumed to be MPI.Object
+     *
+     * @param buf receive buffer array
+     * @param offset initial offet in receive buffer
+     * @param count number of items in receive buffer
+     * @param src rank of source 
+     * @param dest rank of destination (debugging)
+     * @param tag message tag
+     * @param level level of recurssion calling send() (debugging)
+     * @return void
+     */
+    public static void recv(int[][][] buf, int offset, int count, int src, int dest, int tag, int level){
+        if(debug){ 
+            System.out.println("Level is "+level); } 
+            System.out.println("Recving to "+src);
+        }
+        MPI.COMM_WORLD.Recv(buf, offset, count, MPI.OBJECT, src, tag);
+    }
+
+    public static void parallelSolve(int level, int[][][]A, int[][][]B, int myrank, int workers, int p, int msg_size) throws MPIException,IOException,InterruptedException{ //recurrsive
         //Should be overwritten everywhere
         int[][][]    token = new int[workers*2][1][1]; //each worker gets 2 matrixes
         int[][][] subtoken = new int[workers*2][1][1]; //each worker gets 2 matrixes
@@ -275,117 +223,61 @@ public class MatrixMult{
         //
         // STEP 1: Distribute matrixes
         //
-        if (myrank==0){
-            fillToken(token, A, B);
-
-            if(debug){
-                System.out.println(myrank+"=======\tA and B");
-                //printMatrix(A);
-                //printMatrix(B);
-            }
-
-            for (int i=1; i<workers; i++){
-                if(debug){ System.out.println("Level is "+level); } 
-                if(debug){ System.out.println("Sending to "+(int) ((myrank + Math.pow(8,level-1)*i))); }
-                MPI.COMM_WORLD.Send(token, i*2, 2, MPI.OBJECT, (int) ((myrank + Math.pow(8,level-1)*i)) , tag);
-                if (level>1){
-                    d = parallelSolve(--level,A,B,myrank,workers,p,msg_size); 
-                }
-            }
-        } else if (myrank % Math.pow(workers,level-1) == 0 && myrank>7){ //This shouldnt execute for 8 ways parallel
-            MPI.COMM_WORLD.Recv(token, 0, msg_size, MPI.OBJECT, getSender(myrank), tag);
-
-            fillToken(subtoken, partition(token[0]), partition(token[1]) ); //we are afraid to fill token from token
-            if (debug){  
-                System.out.println(myrank+"=======\tA1 and B1");
-                printMatrix(subtoken[0]);
-                printMatrix(subtoken[1]);
-            }
-            
-            for (int i=1; i<workers; i++){
-                if(debug){ System.out.println("Level is "+level); } 
-                if(debug){ System.out.println("Sending to "+(int) ((myrank + Math.pow(8,level-1)*i))); }
-                MPI.COMM_WORLD.Send(subtoken, i*2, 2, MPI.OBJECT, (int) ((myrank + Math.pow(8,level-1)*i)) , tag);
-                if (level>2){
-                    d = parallelSolve(--level,A,B,myrank,workers,p,msg_size); 
-                }
-            }
-
-        } else {
-            MPI.COMM_WORLD.Recv(token, 0, msg_size, MPI.OBJECT, myrank-(myrank%8), tag);
-            if(sleep){Thread.sleep(1000*myrank);}
-            if(debug){
-                System.out.println(myrank+"=======\tA11 and B11");
-                printMatrix(token[0]);
-                printMatrix(token[1]);
-            }
-        }
-        if(level>1 && myrank%workers==0){ //TODO:check +/- 1
-            int[][][] savedToken=token;
-            token=subtoken;
-        }
+        
+        String[] myFileList = distributeSubProblem(); //???
         
         //
         // STEP 2: Multiply
         //
         if (level == 1){
-            int[][]a = token[0]; 
-            int[][]b = token[1];
+            int[][]a = readFile("A"+myFileList[0]+".txt");
+            int[][]b = readFile("B"+myFileList[0]+".txt");
             if(sleep){Thread.sleep(p*1000);}
             d = mult(a,b);
             if(debug){
                 System.out.println(myrank+"=======\tAfter Mult ("+level+")");
                 printMatrix(d);
             }
+            write(d, myFileList[0]); //write into C
         }
 
         //
         // STEP 3: Add, by beginning to collect upper halves to lower halves
         //
+        add(myFileList,myrank,level);
+    }
+
+    public static void add(String[] myFileList, int myrank, int level){
+        
         int distance = myrank - getSender(myrank);
-        if (distance >= Math.pow(8,level)/2 && myrank % Math.pow(8,level) != 0 ){
-            int[][][]D = new int[][][]{d};
-            if(debug){ System.out.println("Hello I am "+myrank+" and I am sending to "+(int) (myrank - Math.pow(8,level-1)*4) ); }
-            MPI.COMM_WORLD.Send(D, 0, 1, MPI.OBJECT, (int) (myrank - Math.pow(8,level-1)*4), tag);
+        int lowerHalf = Math.pow(8,level)/2 ;
+        boolean isFakeZero = myrank % Math.pow(8,level) == 0;
+        if (distance >= lowerHalf && !isFakeZero){
+            int dest = (int) (myrank - Math.pow(8,level-1)*4);
+            send(myFileList, 0, 1, myrank, dest, tag, level);
         } else {
-            int[][][]E=new int[1][1][1]; //not sure why [0][0][0]|null doesnt work
-            if(debug){ System.out.println("Hello I am "+myrank+" and I am recving to "+(int) (myrank + Math.pow(8,level-1)*4) ); }
-            MPI.COMM_WORLD.Recv(E, 0, msg_size, MPI.OBJECT, (int) (myrank + Math.pow(8,level-1)*4), tag);
-            int[][]e=E[0];
-            if (debug){ System.out.println("=========\tAbout to add("+level+") for "+myrank +" from "+ (myrank + Math.pow(8,level-1)*4) ); }
-            int[][] c = add(d,e); 
+            int src = (int) (myrank + Math.pow(8,level-1)*4);
+            recv( theirFileList, 0, msg_size, src, myrank, tag, level);
+            add(myFileList,theirFileList,level); //Writes correctly
             if(sleep){Thread.sleep(p*1000);}
-            if(debug){ 
-                System.out.println(myrank+"=======\tAfter add ("+level+")"); 
-                printMatrix(c);
-            }
 
             //
             // STEP 4: Concat, by collecting lower halves to "0"
+            //         Actually just wait till everyones done
             //
             if (myrank % Math.pow(8,level) !=0) {
-                int[][][] C = new int[][][]{c};
-                MPI.COMM_WORLD.Send(C, 0, 1, MPI.OBJECT, getSender(myrank), tag);
+                send(myFileList, 0, 1, myrank, getSender(myrank), tag, level); 
             } else {
-                int[][] SK = new int[c.length*2][c.length*2]; //SK is all the sounds C can make, bc we already use C
-                int[][][] C = new int[1][1][1];
-                concat(SK, c, 0,0); 
-                MPI.COMM_WORLD.Recv(C, 0, msg_size, MPI.OBJECT, (int) (myrank+(1 * Math.pow(8,level-1)) ), tag);
-                concat(SK, C[0], 0, SK.length/2);
-                MPI.COMM_WORLD.Recv(C, 0, msg_size, MPI.OBJECT, (int) (myrank+(2 * Math.pow(8,level-1)) ), tag);
-                concat(SK, C[0], SK.length/2, 0);
-                MPI.COMM_WORLD.Recv(C, 0, msg_size, MPI.OBJECT, (int) (myrank+(3 * Math.pow(8,level-1)) ), tag);
-                concat(SK, C[0], SK.length/2, SK.length/2);
-                if(debug){
-                    System.out.println(myrank+"=======\tAfter Concat (1)");
-                    printMatrix(SK);
-                }
-                return SK;
+                int src;
+                String[] foo; //do not actually need this data
+                src = (int) (myrank+(1 * Math.pow(8,level-1)) );
+                recv(foo, 0, msg_size, src, myrank, tag, level);
+                src = (int) (myrank+(2 * Math.pow(8,level-1)) );
+                recv(foo, 0, msg_size, src, myrank, tag, level);
+                src = (int) (myrank+(3 * Math.pow(8,level-1)) );
+                recv(foo, 0, msg_size, src, myrank, tag, level);
            }        
         }
-        //this should never happen
-        if(debug){ System.out.println("My rank is "+myrank+" and I am at level "+level+" and I am returning null bc I hate you."); }
-        return null;
     }
 
     public static int getSender(int rank){ //TODO:Test: see if can condense
@@ -425,16 +317,22 @@ public class MatrixMult{
             if ( logBaseEight == (int)logBaseEight ){ //base case, 0 sends to you
                 sender = 0;
             }
-            //why couldn't seven eat eight?
-            //bc fuck eight
         return sender;
     }
 
+    /**
+     * Performs log_base(num).
+     *
+     * @param base the desired log base
+     * @param num the argument for log
+     * @return the answer
+     */
     public static double log(int base, int num) {
         return Math.log(num) / Math.log(base);
     }
 
 
+    //TODO:replace this with tempfile system
     public static int[][] mult(int[][] A, int[][] B) {
         int aRows = A.length;
         int aColumns = A[0].length;
@@ -461,6 +359,7 @@ public class MatrixMult{
         return D;
     }
     
+    //TODO:replace this with tempfile system
     public static int[][] add(int[][] A, int[][] B) {
         int aRows = A.length;
         int aColumns = A[0].length;
@@ -485,6 +384,7 @@ public class MatrixMult{
         return C;
     }
 
+    //TODO:replace this with tempfile system
     /**
      * Copys int[][] part into int[][] master, starting at the top-left corner
      * of master described by r,c
